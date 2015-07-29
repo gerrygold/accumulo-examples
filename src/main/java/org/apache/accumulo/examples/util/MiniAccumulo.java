@@ -14,18 +14,21 @@ import org.apache.log4j.Logger;
 public class MiniAccumulo {
 
 	private static String zoohost = null;
-	private static String zoohostFilePath = System.getProperty("java.io.tmpdir") + File.pathSeparatorChar + "mac.tmp";;
+	private static String zoohostFilePath = System.getProperty("java.io.tmpdir") + File.separatorChar + "mac.tmp";;
 	
+	private static Object monitor = new Object();
+
 	public static void main(String[] args) throws IOException, InterruptedException {
 		
 		Logger.getRootLogger().setLevel(Level.WARN);
+
+		Boolean daemon = "true".equalsIgnoreCase(System.getProperty("daemon"));
 
 		// run in Accumulo MAC
 		File tempDir = Files.createTempDir();
 		tempDir.deleteOnExit();
 		MiniAccumuloCluster accumulo = new MiniAccumuloCluster(tempDir, "password");
 		accumulo.start();
-
 		
 		System.out.println("starting up ...");
 		Thread.sleep(3000);
@@ -38,10 +41,35 @@ public class MiniAccumulo {
 			writer.write(accumulo.getZooKeepers());
 		}
 		
-		System.out.println("hit Enter to shutdown ..");
-		
-		System.in.read();
-		
+		if (daemon) {
+			System.out.println("running as a deamon, ctrl-c or kill to shutdown");
+			Runtime.getRuntime().addShutdownHook( new Thread() {
+					    public void run() {
+						/*
+						try {
+							MiniAccumulo.accumulo.stop();	
+						} catch (Exception ex)
+						{}
+						*/
+					      synchronized(monitor) {
+						   monitor.notifyAll();
+					      }
+    					}
+                                }
+			);
+			
+			synchronized(monitor) {
+			  try {
+				    monitor.wait();
+			  } catch(InterruptedException e) { }
+			}
+			
+		} else {
+			System.out.println("hit Enter to shutdown ..");
+			System.in.read();
+		}
+
+		System.out.println("...shuting down ..");
 		accumulo.stop();
 	}
 

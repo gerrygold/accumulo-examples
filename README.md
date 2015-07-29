@@ -5,6 +5,7 @@ These are simple examples designed to help people getting started with Accumulo.
 The examples here make use of the Accumulo Mini Cluster, which runs client code with Accumulo processes within a single JVM for convenience of learning the API without having to setup a cluster.
 
 ## Contents
+- [Build the JAR with dependencies] (#building)
 - [Running MiniAccumulo](#running)
 - [SimpleIngestClient.java](#simpleingest)
 - [Using the Shell](#shell)
@@ -12,12 +13,23 @@ The examples here make use of the Accumulo Mini Cluster, which runs client code 
 - [Twitter Ingest](#twitteringest)
 - [Twitter Query](#twitterquery)
 
+## <a name="building"</a> Building the JAR with dependencies
+A JAR that contains all dependencies can be built to ease running from the command line. From the command line execute the maven command:
+	mvn compile assembly:single
+This will produce a JAR in the target directory named examples-0.0.1-SNAPSHOT-jar-with-dependencies.jar
+
 ## <a name="running"></a> Running the MiniAccumulo cluster
 
 The examples rely on the MiniAccumuloCluster to be running before they can ingest or read data. To start the MiniCluster, run the class org.apache.accumulo.examples.util.MiniAccumulo either in a terminal window or from within an IDE. 
 
 It will print out information about when it is ready to be used. When finished, hit any key in the terminal window or input console in the IDE to cause the MiniAccumulo cluster to terminate. All data used will be deleted on shutdown.
 
+To run the MiniAccumulo cluster from the command line using the JAR with dependencies execute the command:
+	java -cp examples-0.0.1-SNAPSHOT-jar-with-dependencies.jar org.apache.accumulo.examples.util.MiniAccumulo
+
+to run the MiniAccumulo cluster in background from the command line execute the command: 
+	java -Ddaemon=true -cp examples-0.0.1-SNAPSHOT-jar-with-dependencies.jar org.apache.accumulo.examples.util.MiniAccumulo &
+	
 
 ## <a name="simpleingest"></a>SimpleIngestClient.java
 This code is a toy example showing only how the basic write API of Accumulo is used. Typically production clients will have more structure in order to map external data or programmatic objects to and from Accumulo tables. This client also does not take advantage of all of the features of the Accumulo data model - specifically parts of the key like Column Visibility and other features like locality groups.
@@ -94,9 +106,8 @@ Upon closing the BatchWriter, the mutations will be flushed to the table in the 
 
 The example code can connect to the MiniCluster using the Accumulo Shell to inspect tables and change configuration.
 
-To start a shell, run the MiniClusterShell class in a terminal via 
-
-	mvn exec:java -Dexec.mainClass="org.apache.accumulo.example.util.MiniClusterShell"
+To start a shell, run the MiniClusterShell class in a terminal after building the JAR with dependencies 
+	java -cp examples-0.0.1-SNAPSHOT-jar-with-dependencies.jar org.apache.accumulo.examples.util.MiniAccumuloShell
 	
 or from within an IDE.
 
